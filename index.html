@@ -11,9 +11,9 @@
     <script type="text/javascript" src="ngAutocomplete.js"></script>
     <script type="text/javascript" src="angular-ui-tree.js"></script>
     <script type="text/javascript" src="lodash.js"></script>
-    <script type="text/javascript" src="angular-google-maps.min.js"></script>
+    <script type="text/javascript" src="angular-google-maps.js"></script>
       
-    <link href="/min/bootstrap-3.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="min/bootstrap-3.3.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="selfdefined.css" rel="stylesheet">
     <link href="angular-ui-tree.min.css" rel="stylesheet">
       
@@ -24,7 +24,7 @@
       </style>
   </head>
 
-  <body ng-init="tab=1">
+  <body ng-init="tab=1" ng-controller="mainCtrl">
 <!--Navigation bar starts.-->
     <nav role="navigation" class="navbar navbar-default navbar-fixed-top">
       <div class="container-fluid">
@@ -41,7 +41,7 @@
               <ul class="nav navbar-nav">
                   <li data-ng-class="{'active':tab==1}"><a href="#" ng-click="tab=1">Start</a></li>
                   <li data-ng-class="{'active':tab==2}"><a href="#" ng-click="tab=2">Schedule</a></li>
-                  <li data-ng-class="{'active':tab==3}"><a href="#" ng-click="tab=3">Location</a></li>
+                  <li data-ng-class="{'active':tab==3}"><a href="#" ng-click="tab3click()">Location</a></li>
                   <li data-ng-class="{'active':tab==4}"><a href="#" ng-click="tab=4">Events</a></li>
               </ul>
               <form role="search" class="navbar-form navbar-left">
@@ -75,7 +75,7 @@
                 <div class="col-lg-11">
                     <div class="btn-group" role="group" aria-label="...">
                         <button type="button" class="btn btn-default btn-lg" ng-click="tab=2">Start From Schedule</button>
-                        <button type="button" class="btn btn-default btn-lg" ng-click="tab=3">Start From Location</button>
+                        <button type="button" class="btn btn-default btn-lg" ng-click="tab3click()">Start From Location</button>
                     </div>
                 </div>
             </div>      
@@ -139,11 +139,25 @@
     </div>
 <!--Schedule page ends.-->
 <!--Location page starts.-->
-    <div ng-show="tab==3" ng-hide="tab!=3" id="location">location</div>        
+    <div ng-show="tab==3" ng-hide="tab!=3" id="location">
+        <div class="container">
+            <div class="row">
+                <div class="span12">
+                    <div id="map_canvas" ng-controller="mapCtrl" style="height: 700px">
+                        <ui-gmap-google-map center="map.center" zoom="map.zoom" options="options"  style="height: 600px"></ui-gmap-google-map>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>        
 <!--Location page ends.-->
 <!--Events page starts.-->
     <div ng-show="tab==4" ng-hide="tab!=4" id="events">events</div>
 <!--Events page ends.-->
   </body>
 
+<script>
+    console.log(window.anMap); 
+</script>
+      
 </html>

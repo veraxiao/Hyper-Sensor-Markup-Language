@@ -34,3 +34,7 @@
     background-color: #687074 !important;
     color: #FFF !important;
 }
+
+.angular-google-map-container {
+  height: 560px;
+}

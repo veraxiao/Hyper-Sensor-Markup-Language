@@ -1,4 +1,4 @@
-angular.module('scheduleAssistant', ['ui.bootstrap','ngAutocomplete','ui.tree']);
+angular.module('scheduleAssistant', ['ui.bootstrap','ngAutocomplete','ui.tree','uiGmapgoogle-maps']);
 
 angular.module('scheduleAssistant').controller('autoCpltCtrl', function ($scope){
     $scope.result1 = '';
@@ -176,4 +176,21 @@ angular.module('scheduleAssistant').controller('treeCtrl', function($scope) {
       ],
     }];
     
-  })();
+  });
+
+angular.module('scheduleAssistant').controller('mapCtrl', function($scope){
+    $scope.map = {center: {latitude: 35.5599401, longitude: 139.6328542}, zoom: 14 };
+    $scope.options = {scrollwheel: true};
+
+});
+
+angular.module('scheduleAssistant').controller('mainCtrl', function($scope){
+    $scope.tab3click = function(){
+        $scope.tab = 3;
+        console.log(window.anMap);
+        window.setTimeout(function(){
+            google.maps.event.trigger(window.anMap, 'resize');
+        },10);
+    };
+
+}); 
