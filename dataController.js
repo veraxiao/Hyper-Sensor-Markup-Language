@@ -179,9 +179,18 @@ angular.module('scheduleAssistant').controller('treeCtrl', function($scope) {
   });
 
 angular.module('scheduleAssistant').controller('mapCtrl', function($scope){
-    $scope.map = {center: {latitude: 35.5599401, longitude: 139.6328542}, zoom: 14 };
-    $scope.options = {scrollwheel: true};
-
+    
+    if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(function(position){
+            $scope.$apply(function(){
+                $scope.map = {center: {latitude: position.coords.latitude, longitude: position.coords.longitude}, zoom: 14 };
+                $scope.options = {scrollwheel: true};
+                
+                console.log("----------position---------");
+                console.log(position);
+            });
+        });
+    };
 });
 
 angular.module('scheduleAssistant').controller('mainCtrl', function($scope){
