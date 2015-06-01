@@ -4,7 +4,7 @@
 angular
 
 
-    .module('app')
+    .module('scheduleAssistant')
 
 
     // Angular File Upload module does not include this directive
