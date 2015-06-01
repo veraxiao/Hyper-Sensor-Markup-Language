@@ -1,4 +1,4 @@
-angular.module('scheduleAssistant', ['ui.bootstrap','ngAutocomplete','ui.tree','uiGmapgoogle-maps','angularFileUpload']);
+angular.module('scheduleAssistant', ['ui.bootstrap','ngAutocomplete','ui.tree','uiGmapgoogle-maps','angularFileUpload','textAngular']);
 
 angular.module('scheduleAssistant').controller('autoCpltCtrl', function ($scope){
     $scope.result1 = '';
@@ -247,10 +247,23 @@ angular.module('scheduleAssistant').controller('uploadCtrl', ['$scope', 'FileUpl
         console.info('uploader', uploader);
     }]);
 
+//angular.module('scheduleAssistant').controller('textCtrl',function($scope){});
+
+function wysiwygeditor($scope) {
+		$scope.orightml = '<h2>Try me!</h2><p>textAngular is a super cool WYSIWYG Text Editor directive for AngularJS</p><p><img class="ta-insert-video" ta-insert-video="http://www.youtube.com/embed/2maA1-mvicY" src="" allowfullscreen="true" width="300" frameborder="0" height="250"/></p><p><b>Features:</b></p><ol><li>Automatic Seamless Two-Way-Binding</li><li>Super Easy <b>Theming</b> Options</li><li style="color: green;">Simple Editor Instance Creation</li><li>Safely Parses Html for Custom Toolbar Icons</li><li class="text-danger">Doesn&apos;t Use an iFrame</li><li>Works with Firefox, Chrome, and IE8+</li></ol><p><b>Code at GitHub:</b> <a href="https://github.com/fraywing/textAngular">Here</a> </p>';
+		$scope.htmlcontent = $scope.orightml;
+		$scope.disabled = false;
+
+    ////
+    // Masquerade perfers the scope value over the innerHTML
+    // Uncomment this line to see the effect:
+    // $scope.htmlcontenttwo = "Override originalContents";
+	};
+
 angular.module('scheduleAssistant').controller('mainCtrl', function($scope){
     $scope.tab3click = function(){
         $scope.tab = 3;
-        console.log(window.anMap);
+        //console.log(window.anMap);
         window.setTimeout(function(){
             google.maps.event.trigger(window.anMap, 'resize');
         },10);
