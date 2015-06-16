@@ -194,8 +194,10 @@ angular.module('scheduleAssistant').controller('mapCtrl', function($scope){
 });
 
 angular.module('scheduleAssistant').controller('uploadCtrl', ['$scope', 'FileUploader', function($scope, FileUploader) {
-        var uploader = $scope.uploader = new FileUploader({
-            url: 'upload.php'
+        var formData = [{userName: "testUser1", blogName: "testBlog1"}];
+        var uploader = $scope.uploader = new FileUploader({        
+            url: 'upload.php',
+            formData: formData
         });
 
         // FILTERS

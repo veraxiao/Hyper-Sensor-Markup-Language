@@ -13,7 +13,7 @@
     <script type="text/javascript" src="angular/lodash.js"></script>
     <script type="text/javascript" src="angular/angular-google-maps.js"></script>
     <script type="text/javascript" src="angular/TextAngular/textAngular-rangy.min.js"></script>
-    <script type="text/javascript" src="angular/TextAngular/textAngular-sanitize.min.js"></script>
+    <script type="text/javascript" src="angular/TextAngular/textAngular-sanitize.js"></script>
     <script type="text/javascript" src="angular/TextAngular/textAngular.min.js"></script>
     
     <script type="text/javascript" src="angular/es5-shim.min.js"></script>
@@ -24,10 +24,10 @@
     <script type="text/javascript" src="dataController.js"></script>
     <script type="text/javascript" src="directives.js"></script> 
       
-    <link rel="stylesheet prefetch" href="angular/TextAngular/font-awesome.min.css">
+    <link rel='stylesheet prefetch' href='http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css'>
     <link href="min/bootstrap-3.3.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="selfdefined.css" rel="stylesheet">
-    <link href="angular/angular-ui-tree.min.css" rel="stylesheet">
+    <link href="angular/TextAngular/textAngular.css" rel="stylesheet">
       
     <style type="text/css">
         .bs-example{
@@ -69,7 +69,8 @@
 <!--Navigation bar ends.-->       
     <div style="height:50px"></div>
 
-<!--Start page starts.-->        
+<!--Start page starts.-->
+<!--Image File Uploader-->
     <div ng-show="tab==1" ng-hide="tab!=1" id="start" ng-controller="uploadCtrl" nv-file-drop="" uploader="uploader">
         <div class="container">
             <div class="row" style="height:50px"></div>
@@ -167,9 +168,14 @@
                     </div>
 
                 </div>
-
-
-            </div>      
+            </div>
+<!--Next Button-->
+            <div class="row">
+                <div class="col-lg-4"></div>
+                <div class="col-lg-8">
+                    <button type="button" class="btn btn-default" ng-click="$parent.tab=2">Next</button>
+                </div>
+            </div>
         </div>
     </div>
 <!--Start page ends.-->
@@ -183,7 +189,10 @@
             <div class="row">
                 <div class="col-lg-4"></div>
                 <div class="col-lg-8">
-                    <button type="button" class="btn btn-default">NEXT</button>
+                    <div class="btn-group">
+                    <button type="button" class="btn btn-default" ng-click="$parent.tab=1">Back</button>
+                    <button type="button" class="btn btn-default" ng-click="$parent.tab=3">Next</button>
+                        </div>
                 </div>
             </div>
         </div>    
