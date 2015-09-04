@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html ng-app="scheduleAssistant">
-
+<meta charset="utf-8">
   <head>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false"></script>
     <script type="text/javascript" src="angular/angular.min.js"></script>
@@ -53,7 +53,7 @@
               <ul class="nav navbar-nav">
                   <li data-ng-class="{'active':tab==1}"><a href="#" ng-click="tab=1">Start</a></li>
                   <li data-ng-class="{'active':tab==2}"><a href="#" ng-click="tab=2">Editor</a></li>
-                  <li data-ng-class="{'active':tab==3}"><a href="#" ng-click="tab3click()">Location</a></li>
+                  <li data-ng-class="{'active':tab==3}"><a href="#" ng-click="tab=3">Location</a></li>
                   <li data-ng-class="{'active':tab==4}"><a href="#" ng-click="tab=4">Events</a></li>
               </ul>
               <form role="search" class="navbar-form navbar-left">
@@ -204,7 +204,17 @@
             <div class="row">
                 <div class="span12">
                     <div id="map_canvas" ng-controller="mapCtrl" style="height: 700px">
-                        <ui-gmap-google-map center="map.center" zoom="map.zoom" options="options"  style="height: 600px"></ui-gmap-google-map>
+                        <ui-gmap-google-map center="map.center" zoom="map.zoom" options="options"  style="height: 600px">
+                            <ui-gmap-markers models="markers" coords="'self'" icon="'icon'" click="onMarkerClicked">
+                                <ui-gmap-windows show="'showWindow'" ng-cloak>
+                                    <div ng-non-bindable>
+                                        <p>{{title}}</p>
+                                        <p>{{content}}</p>
+                                        <p><a class="btn" ng-click="clickedButtonInWindow()">CLICK ME</a></p>
+                                    </div>
+                                </ui-gmap-windows>
+                            </ui-gmap-markers>
+                        </ui-gmap-google-map>
                         </div>
                     </div>
                 </div>
@@ -215,9 +225,5 @@
     <div ng-show="tab==4" ng-hide="tab!=4" id="events">events</div>
 <!--Events page ends.-->
   </body>
-
-<script>
-    console.log(window.anMap); 
-</script>
       
 </html>
