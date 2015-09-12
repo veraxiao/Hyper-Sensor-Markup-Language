@@ -35,6 +35,42 @@
   height: 560px;
 }
 
+.tooltip{
+    position: absolute;
+    line-height:.7;
+    font-weight:bold;
+    padding: 8px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    font-weight: bold;
+    font: 11.5px sans-serif;
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+
+
+.SvgOverlay {
+    position: relative;
+    width: 960px;
+    height: 500px;           
+}
+        
+.SvgOverlay svg {
+    position: absolute;
+    top: -4000px;
+    left: -4000px;
+    width: 8000px;
+    height: 8000px;        
+}
+        
+.SvgOverlay path {
+    stroke: Orange;
+    stroke-width: 2px;
+    fill: Orange;
+    fill-opacity: 0;
+}
+
 .my-drop-zone { 
     border: dotted 3px lightgray; 
 }
@@ -58,6 +94,8 @@
 html, body { 
     height: 100%; 
 }
+
+
 
 /*
 canvas {

@@ -204,8 +204,110 @@ function($scope, sharedService){
    $scope.$on('htmlSubmit', function(){
        console.info('mapCtrl','htmlSubmit');
        $scope.jsoncontent = sharedService.jsoncontent;
+       console.info('jsoncontent:',$scope.jsoncontent);
        
-       $scope.markers = [];
+       var map = window.anMap;
+       console.info('map',map);
+       
+       var overlay = new google.maps.OverlayView();
+       overlay.onAdd = function() {
+            var layer = d3.select(this.getPanes().overlayMouseTarget).append("div")
+                .attr("class", "SvgOverlay");
+            var svg = layer.append("svg");
+            var tooltip = d3.select("body").append("div").attr("class", "tooltip").style("opacity", 0);
+            var adminDivisions = svg.append("g").attr("class", "AdminDivisions");
+            var lineGroup = svg.append("g").attr("class", "lines");
+            var locGroup = svg.append("g").attr("class", "locs");
+           
+           overlay.draw = function(){
+                var projection = this.getProjection(),
+                    //padding = 16;
+                    locs = $scope.jsoncontent.locs,
+                    lnks = $scope.jsoncontent.lnks;
+                  
+               //draw lnks
+                var linefunction = d3.svg.line()
+                    .x(function(d) {return d.x;})
+                    .y(function(d) {return d.y;})
+                    .interpolate("cadinal");
+               
+                lineGroup.selectAll("path").remove();
+                for(var i=0; i<lnks.length; i++)
+                {
+                    var startEndLocs = findStartEnd(lnks[i]);
+                    startEndLocs[0] = transform(startEndLocs[0]);
+                    startEndLocs[1] = transform(startEndLocs[1]);
+                    console.info("start end locs", startEndLocs);
+                    lineGroup.append("path")
+                    .attr("d", linefunction(startEndLocs))
+                    .style("stroke", "red")
+                    .attr("stroke-width", 2)
+                    .attr("fill","none");
+                }
+               
+               //draw locs
+               var locMarkers = locGroup.selectAll("circle")
+                    .data(locs)
+                    .each(transform)
+                    .attr({
+                        cx: function(d){return d.x;},
+                        cy: function(d){return d.y;},
+                        r: 15
+                    })
+                    .style("stroke","#777")
+                    .style("fill", "lightblue")
+                    .enter().append("circle")
+                    .attr({
+                        cx: function(d){return d.x;},
+                        cy: function(d){return d.y;},
+                        r: 15
+                    })
+                    .style("stroke","#777")
+                    .style("fill", "lightblue")
+                    .on("mouseover", function(d){
+                        tooltip.transition()
+                            .duration(200)
+                            .style("opacity",.9);
+                            tooltip.html(d.content)
+                                .style("left", (d3.event.pageX + 5) + "px")
+                                .style("top", (d3.event.pageY - 28)+ "px");
+                    })
+                    .on("mouseout", function(d){
+                        tooltip.transition()
+                            .duration(200)
+                            .style("opacity", 0);
+                    });
+               
+               function transform(loc){
+                    var googleCoordinates = new google.maps.LatLng(loc.lat, loc.lng);
+                    var pixelCoordinates = projection.fromLatLngToDivPixel(googleCoordinates);
+                   loc.x = pixelCoordinates.x + 4000;
+                   loc.y = pixelCoordinates.y + 4000;
+                   
+                    return loc;
+               };
+               
+               function findStartEnd(lnk){
+                    var startEndlocs = new Array();
+                   
+                    for(var i=0;i<locs.length;i++)
+                    {
+                        if(locs[i].name == lnk.start ||           
+                            locs[i].name == lnk.end)
+                        startEndlocs.push(locs[i]);
+                   }
+                   
+                   console.info("Find Start End", locs);
+                   return locs;
+               };
+       };
+       
+ 
+   };
+       
+    overlay.setMap(map);
+      
+    $scope.markers = [];
        for(var i=0; i<$scope.jsoncontent.locs.length; i++)
        {
            if($scope.jsoncontent.locs[i].lat && $scope.jsoncontent.locs[i].lng)
