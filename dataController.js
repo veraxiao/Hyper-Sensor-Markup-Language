@@ -209,6 +209,15 @@ function($scope, sharedService){
        var map = window.anMap;
        console.info('map',map);
        
+       if(d3.select("div.SvgOverlay"))
+       {
+           d3.select("div.SvgOverlay").remove();
+       }
+       if(overlay)
+       {
+           overlay.setMap(null);
+       }
+       
        var overlay = new google.maps.OverlayView();
        overlay.onAdd = function() {
             var layer = d3.select(this.getPanes().overlayMouseTarget).append("div")
@@ -232,18 +241,31 @@ function($scope, sharedService){
                     .interpolate("cadinal");
                
                 lineGroup.selectAll("path").remove();
-                for(var i=0; i<lnks.length; i++)
-                {
-                    var startEndLocs = findStartEnd(lnks[i]);
-                    startEndLocs[0] = transform(startEndLocs[0]);
-                    startEndLocs[1] = transform(startEndLocs[1]);
-                    console.info("start end locs", startEndLocs);
-                    lineGroup.append("path")
-                    .attr("d", linefunction(startEndLocs))
-                    .style("stroke", "red")
-                    .attr("stroke-width", 2)
-                    .attr("fill","none");
-                }
+                //for(var i=0; i<lnks.length; i++)
+                //{
+                var lnkMarkers = lineGroup.selectAll("path")
+                    .data(lnks)
+                    .enter().append("path")
+                    .each(transformGroups)
+                    .attr("d", function(d){return linefunction(d.points);})
+                    .style("stroke", function(d){if(d.style.stroke)return d.style.stroke; else return "purple";})
+                    .style("stroke-width", function(d){if(d.style.width)return d.style.width; else return "2px";})
+                    .style("fill",function(d){if(d.style.fill)return d.style.fill; else return "none";})
+                    .on("mouseover", function(d){
+                        tooltip.transition()
+                        .duration(200)
+                        .style("opacity",.9);
+                        tooltip.html(d.content)
+                        .style("left",(d3.event.pageX + 5) + "px")
+                        .style("top",(d3.event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function(d){
+                        tooltip.transition()
+                        .duration(200)
+                        .style("opacity",0);
+                    });
+               console.info("lnkMarkers:", lnkMarkers);
+                //}
                
                //draw locs
                var locMarkers = locGroup.selectAll("circle")
@@ -252,18 +274,20 @@ function($scope, sharedService){
                     .attr({
                         cx: function(d){return d.x;},
                         cy: function(d){return d.y;},
-                        r: 15
+                        r: function(d){if(d.style.r)return d.style.r; else return 10;}
                     })
-                    .style("stroke","#777")
-                    .style("fill", "lightblue")
+                    .style("stroke", function(d){if(d.style.stroke)return d.style.stroke; else return "red";})
+                    .style("fill", function(d){if(d.style.fill)return d.style.fill; else return "lightblue";})
+                    .style("stroke-width", function(d){if(d.style.width)return d.style.width; else return "1px";})
                     .enter().append("circle")
                     .attr({
                         cx: function(d){return d.x;},
                         cy: function(d){return d.y;},
-                        r: 15
+                        r: function(d){if(d.style.r)return d.style.r; else return 10;}
                     })
-                    .style("stroke","#777")
-                    .style("fill", "lightblue")
+                    .style("stroke", function(d){if(d.style.stroke)return d.style.stroke; else return "red";})
+                    .style("fill", function(d){if(d.style.fill)return d.style.fill; else return "lightblue";})
+                    .style("stroke-width", function(d){if(d.style.width)return d.style.width; else return "1px";})
                     .on("mouseover", function(d){
                         tooltip.transition()
                             .duration(200)
@@ -287,19 +311,18 @@ function($scope, sharedService){
                     return loc;
                };
                
-               function findStartEnd(lnk){
-                    var startEndlocs = new Array();
-                   
-                    for(var i=0;i<locs.length;i++)
-                    {
-                        if(locs[i].name == lnk.start ||           
-                            locs[i].name == lnk.end)
-                        startEndlocs.push(locs[i]);
+               function transformGroups(lnk)
+               {
+                   for(var i=0;i<lnk.points.length;i++)
+                   {
+                       var googleCoordinates = new google.maps.LatLng(lnk.points[i].lat, lnk.points[i].lng);
+                        var pixelCoordinates = projection.fromLatLngToDivPixel(googleCoordinates);
+                        lnk.points[i].x = pixelCoordinates.x + 4000;
+                        lnk.points[i].y = pixelCoordinates.y + 4000;
                    }
-                   
-                   console.info("Find Start End", locs);
-                   return locs;
-               };
+                   console.info("lnkPoints in transform:", lnk);
+                   return lnk;
+               }
        };
        
  
@@ -351,7 +374,16 @@ angular.module('scheduleAssistant').controller('uploadCtrl', ['$scope', 'FileUpl
             name: 'imageFilter',
             fn: function(item /*{File|FileLikeObject}*/, options) {
                 var type = '|' + item.type.slice(item.type.lastIndexOf('/') + 1) + '|';
-                return '|jpg|png|jpeg|bmp|gif|'.indexOf(type) !== -1;
+                var ext = '|' + item.name.slice(item.name.lastIndexOf('.') + 1) + '|';
+                //console.info('item:',item,'type:',type,'ext:',ext);
+                if('|jpg|png|jpeg|bmp|gif|'.indexOf(type) !== -1)
+                {
+                    return '|jpg|png|jpeg|bmp|gif|'.indexOf(type);
+                }
+                else
+                {
+                    return '|locs|lnks|'.indexOf(ext) !== -1;
+                }
             }
         });
 
@@ -376,9 +408,23 @@ angular.module('scheduleAssistant').controller('uploadCtrl', ['$scope', 'FileUpl
             console.info('onProgressAll', progress);
         };
         uploader.onSuccessItem = function(fileItem, response, status, headers) {
-            console.info('onSuccessItem', fileItem, response, status, headers);
-            $scope.imgAddress = response.filePath;
-            sharedService.prepForBroadcast('imgUpload', $scope.imgAddress);            
+            var ext = fileItem._file.name.slice(fileItem._file.name.lastIndexOf('.') + 1);
+            console.info('onSuccessItem', fileItem, response, status, headers, ext);
+            if(ext == "locs") //.locs file uploaded
+            {
+                $scope.locAddress = response.filePath;
+                sharedService.prepForBroadcast('locUpload', $scope.locAddress);
+            }
+            else if(ext == "lnks")//.lnks file uploaded
+            {
+                $scope.lnkAddress = response.filePath;
+                sharedService.prepForBroadcast('lnkUpload', $scope.lnkAddress);
+            }
+            else //image file uploaded
+            {
+                $scope.imgAddress = response.filePath;
+                sharedService.prepForBroadcast('imgUpload', $scope.imgAddress); 
+            }
         };
         uploader.onErrorItem = function(fileItem, response, status, headers) {
             console.info('onErrorItem', fileItem, response, status, headers);
@@ -399,7 +445,7 @@ angular.module('scheduleAssistant').controller('uploadCtrl', ['$scope', 'FileUpl
 //angular.module('scheduleAssistant').controller('textCtrl',function($scope){});
 
 function wysiwygeditor($scope, sharedService) {
-		$scope.orightml = '<h2>Try me!</h2><p><lnk id="1" start="keio university" end="#">This is a testing link.</lnk></p><p><loc type = \' university.1.~$!@#^&%*()-= \' id = "中文" lat="35.554498 " lng="139.6485728" name ="keio university">textAngular is a super cool WYSIWYG Text Editor directive for AngularJS</loc></p><p><loc lat="35.55129247928427" lng="139.671764373779" name="#"><img class="ta-insert-video" ta-insert-video="http://www.youtube.com/embed/2maA1-mvicY" src="" allowfullscreen="true" width="300" frameborder="0" height="250"/></loc></p><p><b>Features:</b></p><ol><li>Automatic Seamless Two-Way-Binding</li><li>Super Easy <b>Theming</b> Options</li><li style="color: green;">Simple Editor Instance Creation</li><li>Safely Parses Html for Custom Toolbar Icons</li><li class="text-danger">Doesn\'t Use an iFrame</li><li>Works with Firefox, Chrome, and IE8+</li></ol><p><b>Code at GitHub:</b> <a href="https://github.com/fraywing/textAngular">Here</a> </p>';
+		$scope.orightml = '<h2>Try me!</h2><p><lnk id="1" points=" keio university, #,  dhifes, 1234 " category="subway">This is a testing link.</lnk></p><p><lnk id="2" points="1234, #" style=" stroke: black; width: 3px; type : dotted;">This is another testing link.</lnk></p><p><loc name="1234" lat="35.57" lng="139.66" style="r:15;  fill: red; stroke : black; width: 5px;"></loc></p><p><loc type = \' university.1.~$!@#^&%*()-= \' id = "中文" lat="35.554498 " lng="139.6485728" name ="keio university">textAngular is a super cool WYSIWYG Text Editor directive for AngularJS</loc></p><p><loc lat="35.55129247928427" lng="139.671764373779" name="#"></loc></p><p><loc name="dhifes" lat="35.58" lng="139.66"></loc></p><p><b>Features:</b></p><ol><li>Automatic Seamless Two-Way-Binding</li><li>Super Easy <b>Theming</b> Options</li><li style="color: green;">Simple Editor Instance Creation</li><li>Safely Parses Html for Custom Toolbar Icons</li><li class="text-danger">Doesn\'t Use an iFrame</li><li>Works with Firefox, Chrome, and IE8+</li></ol><p><b>Code at GitHub:</b> <a href="https://github.com/fraywing/textAngular">Here</a> </p>';
 		$scope.htmlcontent = $scope.orightml;
 		$scope.disabled = false;
 
@@ -412,6 +458,16 @@ function wysiwygeditor($scope, sharedService) {
             $scope.imgAddress = sharedService.imgAddress;
             $scope.htmlcontent += '<img width="600px" src="' + $scope.imgAddress + '">';
             });
+    
+        $scope.$on('locUpload', function(){
+            $scope.locAddress = sharedService.locAddress;
+            $scope.htmlcontent += '<loc src="' + $scope.locAddress + '"></loc>';
+        });
+    
+        $scope.$on('lnkUpload', function(){
+            $scope.lnkAddress = sharedService.lnkAddress;
+            $scope.htmlcontent += '<lnk src="' + $scope.lnkAddress + '"></lnk>';
+        });
     
         $scope.$on('tab3click', function(){
             sharedService.prepForBroadcast('htmlSubmit', $scope.htmlcontent);
@@ -451,6 +507,8 @@ angular.module('scheduleAssistant').factory('mySharedService',
             sharedService.imgAddress = '';
             sharedService.htmlcontent = '';
             sharedService.jsoncontent = '';
+            sharedService.locAddress = '';
+            sharedService.lnkAddress = '';
     
             sharedService.prepForBroadcast = function(msgID, msgValue){
                 switch(msgID)
@@ -458,6 +516,14 @@ angular.module('scheduleAssistant').factory('mySharedService',
                     case 'imgUpload':
                         this.imgAddress = msgValue;
                         console.info('imgUploadMsg:', msgValue);
+                        break;
+                    case 'locUpload':
+                        this.locAddress = msgValue;
+                        console.info('locUploadMsg:', msgValue);
+                        break;
+                    case 'lnkUpload':
+                        this.lnkAddress = msgValue;
+                        console.info('lnkUploadMsg:', msgValue);
                         break;
                     case 'tab3click':
                         console.info('tab3clickMsg:');
@@ -483,7 +549,8 @@ angular.module('scheduleAssistant').factory('mySharedService',
                 {
                     for(i=0; i<res.length; i++)
                     {
-                        var loc = {tag:'', content:'', id:'', lat:0, lng:0, name:'', type:''};
+                        var loc = {tag:'', content:'', src:'', id:'', lat:0, lng:0, name:'', type:'', style:''};
+                        loc.style = {r:'', fill:'', stroke:'', width:''};
                         locstr = res[i];
                         loc.tag = locstr.match(/<\s*loc.*?>/g) + '</loc>';
                         loc.content = locstr.replace(/<\s*loc.*?>/g,'').replace(/<\s*\/\s*loc\s*.*?>/g,'');
@@ -491,23 +558,45 @@ angular.module('scheduleAssistant').factory('mySharedService',
                         myRegex = new RegExp(/^<(\w+)((?:\s+\w+((?:\s*)=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/);
 
                         match = myRegex.exec(loc.tag);
-                        attrs = match[2].replace(/'/g, "\"").replace(/\s*"\s*/g,"\"").replace(/\s*=\s*/g,"=");
-                        id = attrs.match(/id="([^"]*)"/);
-                        myname = attrs.match(/name="([^"]*)"/);
-                        type = attrs.match(/type="([^"]*)"/);
-                        lat = attrs.match(/lat="([0-9/.]*)"/);
-                        lng = attrs.match(/lng="([0-9/.]*)"/);
+                        attrs = match[2].replace(/'/g, "\"").replace(/\s*"\s*/g,"\"").replace(/\s*=\s*/g,"=").replace(/\s*:\s*/g,":").replace(/\s*;\s*/g,";");
+                        console.info("attrs:", attrs);
+                        src = attrs.match(/src="([^"]*)"/);
+                        if(src)
+                            loc.src = src[1];
+                        else
+                        {
+                            console.info("loc's src is Null!");
+                            id = attrs.match(/id="([^"]*)"/);
+                            myname = attrs.match(/name="([^"]*)"/);
+                            type = attrs.match(/type="([^"]*)"/);
+                            lat = attrs.match(/lat="([0-9/.]*)"/);
+                            lng = attrs.match(/lng="([0-9/.]*)"/);
+                            locstyle = attrs.match(/style="([^"]*)"/);
+                            if(locstyle)
+                            {
+                                //console.info("locstyle:",locstyle);
+                                r = locstyle[1].match(/r:([0-9/.]*);/);
+                                fill = locstyle[1].match(/fill:([^;]*);/);
+                                stroke = locstyle[1].match(/stroke:([^;]*);/);
+                                width = locstyle[1].match(/width:([^;]*);/);
+                                if(r)loc.style.r = r[1];
+                                if(fill)loc.style.fill = fill[1];
+                                if(stroke)loc.style.stroke = stroke[1];
+                                if(width)loc.style.width = width[1];
+                                //console.info("loc.style:", loc.style);
+                            }
 
-                        if(type)loc.type = type[1];
-                        if(id)loc.id = id[1];
-                        if(myname)loc.name = myname[1];
-                        if(lat)loc.lat = lat[1];
-                        if(lng)loc.lng = lng[1];
-
-                        locs.push(loc);
+                            if(type)loc.type = type[1];
+                            if(id)loc.id = id[1];
+                            if(myname)loc.name = myname[1];
+                            if(lat)loc.lat = lat[1];
+                            if(lng)loc.lng = lng[1];
+                            
+                             locs.push(loc);
+                        }  
                     }
                 }
-                
+                console.info("locs:", locs);
                 return locs;
             }
             
@@ -519,27 +608,51 @@ angular.module('scheduleAssistant').factory('mySharedService',
                 {
                     for(i=0; i<res.length; i++)
                     {
-                        var lnk = {tag:'', content:'', id:'', start:'', end:''};
+                        var lnk = {tag:'', content:'', src:'', id:'', points:'', category:'', style:''};
+                        lnk.points = [];
+                        lnk.style = {type:'', fill:'', stroke:'', width:''};
                         lnkstr = res[i];
                         lnk.tag = lnkstr.match(/<\s*lnk.*?>/g) + '</lnk>';
                         lnk.content = lnkstr.replace(/<\s*lnk.*?>/g,'').replace(/<\s*\/\s*lnk\s*.*?>/g,'');
                         
                         myRegex = new RegExp(/^<(\w+)((?:\s+\w+((?:\s*)=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/);
                         match = myRegex.exec(lnk.tag);
-                        attrs = match[2].replace(/'/g, "\"").replace(/\s*"\s*/g,"\"").replace(/\s*=\s*/g,"=");
-                        id = attrs.match(/id="([^"]*)"/);
-                        start = attrs.match(/start="([^"]*)"/);
-                        end = attrs.match(/end="([^"]*)"/);
-                        
-                        if(id)lnk.id = id[1];
-                        if(start)lnk.start = start[1];
-                        if(end)lnk.end = end[1];
-                        
-                        lnks.push(lnk);
-                        console.info('lnks:', lnks);
+                        attrs = match[2].replace(/'/g, "\"").replace(/\s*"\s*/g,"\"").replace(/\s*=\s*/g,"=").replace(/\s*,\s*/g,",").replace(/\s*:\s*/g,":").replace(/\s*;\s*/g,";");
+                        src = attrs.match(/src="([^"]*)"/);
+                        if(src)
+                            lnk.src = src[1];
+                        else
+                        {
+                            console.info("lnk's src is null!");
+                            id = attrs.match(/id="([^"]*)"/);
+                            category = attrs.match(/category="([^"]*)"/);
+                            temps = attrs.match(/points="([^"]*)"/);
+                            lnk.points = temps[1].split(/[,]+/);
+                            lnkstyle = attrs.match(/style="([^"]*)"/);
+                            if(lnkstyle)
+                            {
+                                console.info("lnkstyle:",lnkstyle);
+                                lnktype = lnkstyle[1].match(/type:([^;]*);/);
+                                fill = lnkstyle[1].match(/fill:([^;]*);/);
+                                stroke = lnkstyle[1].match(/stroke:([^;]*);/);
+                                width = lnkstyle[1].match(/width:([^;]*);/);
+                            
+                                if(lnktype)lnk.style.type = lnktype[1];
+                                if(fill)lnk.style.fill = fill[1];
+                                if(stroke)lnk.style.stroke = stroke[1];
+                                if(width)lnk.style.width = width[1];
+                                //console.info("lnk.style:", lnk.style);
+                            }
+                            
+                        //console.info("temps", temps);            
+                        //console.info('points:', lnk.points);
+                            if(id)lnk.id = id[1];
+                            if(category)lnk.category = category[1];
+                            lnks.push(lnk);
+                        }  
                     }
                 }
-                
+                console.info('lnks:', lnks);
                 return lnks;
             }
     
@@ -547,6 +660,24 @@ angular.module('scheduleAssistant').factory('mySharedService',
                 var jscontents = {locs:'', lnks:''};
                 jscontents.locs = this.getLocs(htmlinput);
                 jscontents.lnks = this.getLnks(htmlinput);
+                //console.info("jscontents.lnks before:", jscontents.lnks);
+                //finding each corresponding locs in each lnk and store in lnk.points
+                if(jscontents.lnks && jscontents.locs)
+                {
+                    for(var i=0;i<jscontents.lnks.length;i++)
+                    {
+                        for(var j=0;j<jscontents.lnks[i].points.length;j++)
+                        {
+                            for(var k=0;k<jscontents.locs.length;k++)
+                            {
+                                if(jscontents.lnks[i].points[j] == jscontents.locs[k].name)
+                                    jscontents.lnks[i].points[j] = jscontents.locs[k];
+                            }
+                        }
+                    }
+                }
+                //console.info("jscontents.lnks after:", jscontents.lnks);
+                
                 return jscontents;
             };
             

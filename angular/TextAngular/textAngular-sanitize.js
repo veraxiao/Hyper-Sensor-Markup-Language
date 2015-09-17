@@ -220,7 +220,8 @@ var validElements = angular.extend({},
 //Attributes that have href and hence need to be sanitized
 var uriAttrs = makeMap("background,cite,href,longdesc,src,usemap,xlink:href");
 
-var htmlAttrs = makeMap('start,end,name,lat,lng,transportation,physical,conceptual,'+
+var htmlAttrs = makeMap('fill,width,r,stroke,type,'+
+    'style,points,category,name,lat,lng,transportation,physical,conceptual,src,'+
     'abbr,align,alt,axis,bgcolor,border,cellpadding,cellspacing,class,clear,'+
     'color,cols,colspan,compact,coords,dir,face,headers,height,hreflang,hspace,'+
     'id,ismap,lang,language,nohref,nowrap,rel,rev,rows,rowspan,rules,'+
@@ -508,7 +509,8 @@ function validStyles(styleAttr){
 			var key = trim(angular.lowercase(v[0]));
 			var value = trim(angular.lowercase(v[1]));
 			if(
-				(key === 'color' || key === 'background-color') && (
+				(key === 'color' || key === 'background-color' || key === 'fill' ||
+                    key === 'stroke') && (
 					value.match(/^rgb\([0-9%,\. ]*\)$/i)
 					|| value.match(/^rgba\([0-9%,\. ]*\)$/i)
 					|| value.match(/^hsl\([0-9%,\. ]*\)$/i)
@@ -524,6 +526,13 @@ function validStyles(styleAttr){
 					|| value === 'justify'
 				)
 			||
+                key === 'type' && (
+                    value === 'straight'
+                    || value === 'dotted'
+                    || value === 'dashed'
+                    || value === 'none'
+                )  
+            ||
 				key === 'float' && (
 					value === 'left'
 					|| value === 'right'
@@ -533,6 +542,11 @@ function validStyles(styleAttr){
 				(key === 'width' || key === 'height') && (
 					value.match(/[0-9\.]*(px|em|rem|%)/)
 				)
+            ||
+                key === 'r' && (
+                    value.match(/[0-9\.]*/)
+                )
+                
 			|| // Reference #520
 				(key === 'direction' && value.match(/^ltr|rtl|initial|inherit$/))
 			) result += key + ': ' + value + ';';
