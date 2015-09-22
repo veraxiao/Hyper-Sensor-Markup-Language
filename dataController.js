@@ -264,10 +264,11 @@ function($scope, sharedService){
                         .duration(200)
                         .style("opacity",0);
                     });
-               console.info("lnkMarkers:", lnkMarkers);
+               //console.info("lnkMarkers:", lnkMarkers);
                 //}
                
                //draw locs
+               //locGroup.selectAll("circle").remove();
                var locMarkers = locGroup.selectAll("circle")
                     .data(locs)
                     .each(transform)
@@ -280,6 +281,7 @@ function($scope, sharedService){
                     .style("fill", function(d){if(d.style.fill)return d.style.fill; else return "lightblue";})
                     .style("stroke-width", function(d){if(d.style.width)return d.style.width; else return "1px";})
                     .enter().append("circle")
+                    .each(transform)
                     .attr({
                         cx: function(d){return d.x;},
                         cy: function(d){return d.y;},
@@ -308,6 +310,7 @@ function($scope, sharedService){
                    loc.x = pixelCoordinates.x + 4000;
                    loc.y = pixelCoordinates.y + 4000;
                    
+                   //console.info("loc in transform:", loc, loc.x, loc.y);
                     return loc;
                };
                
@@ -320,7 +323,7 @@ function($scope, sharedService){
                         lnk.points[i].x = pixelCoordinates.x + 4000;
                         lnk.points[i].y = pixelCoordinates.y + 4000;
                    }
-                   console.info("lnkPoints in transform:", lnk);
+                   //console.info("lnkPoints in transform:", lnk);
                    return lnk;
                }
        };
@@ -541,50 +544,59 @@ angular.module('scheduleAssistant').factory('mySharedService',
                 $rootScope.$broadcast(msgID);
             };
             
-            sharedService.getLocs = function(htmlstr){
-                res = htmlstr.match(/<\s*loc.*?>(.*?)<\s*\/\s*loc\s*.*?>/g);
-                
-                var locs = new Array();
-                if(res)
+            sharedService.parseHtml = function(htmlinput){
+                var jscontents = {locs:'', lnks:''};
+                jscontents.locs = new Array();
+                jscontents.lnks = new Array();
+                var csvFiles = [];
+                var csvLocCount = 0; // To count the amount of .locs in csvFiles. The rest are .lnks files.
+
+                locres = htmlinput.match(/<\s*loc.*?>(.*?)<\s*\/\s*loc\s*.*?>/g);
+                lnkres = htmlinput.match(/<\s*lnk.*?>(.*?)<\s*\/\s*lnk\s*.*?>/g);
+      
+                if(locres)//if any <log> tag existed in htmlinput.
                 {
-                    for(i=0; i<res.length; i++)
+                    for(i=0; i<locres.length; i++)
                     {
                         var loc = {tag:'', content:'', src:'', id:'', lat:0, lng:0, name:'', type:'', style:''};
                         loc.style = {r:'', fill:'', stroke:'', width:''};
-                        locstr = res[i];
+              
+                        locstr = locres[i];
                         loc.tag = locstr.match(/<\s*loc.*?>/g) + '</loc>';
                         loc.content = locstr.replace(/<\s*loc.*?>/g,'').replace(/<\s*\/\s*loc\s*.*?>/g,'');
 
                         myRegex = new RegExp(/^<(\w+)((?:\s+\w+((?:\s*)=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/);
-
                         match = myRegex.exec(loc.tag);
                         attrs = match[2].replace(/'/g, "\"").replace(/\s*"\s*/g,"\"").replace(/\s*=\s*/g,"=").replace(/\s*:\s*/g,":").replace(/\s*;\s*/g,";");
-                        console.info("attrs:", attrs);
+                       
                         src = attrs.match(/src="([^"]*)"/);
-                        if(src)
+                        //Process loc's style
+                        locstyle = attrs.match(/style="([^"]*)"/);
+                        if(locstyle)
+                        {
+                            r = locstyle[1].match(/r:([0-9/.]*);/);
+                            fill = locstyle[1].match(/fill:([^;]*);/);
+                            stroke = locstyle[1].match(/stroke:([^;]*);/);
+                            width = locstyle[1].match(/width:([^;]*);/);
+                            if(r)loc.style.r = r[1];
+                            if(fill)loc.style.fill = fill[1];
+                            if(stroke)loc.style.stroke = stroke[1];
+                            if(width)loc.style.width = width[1];
+                        }
+                   
+                        if(src)//If csv data source existed
+                        {
                             loc.src = src[1];
+                            csvFiles.push(loc);
+                            csvLocCount++;
+                        }
                         else
                         {
-                            console.info("loc's src is Null!");
                             id = attrs.match(/id="([^"]*)"/);
                             myname = attrs.match(/name="([^"]*)"/);
                             type = attrs.match(/type="([^"]*)"/);
                             lat = attrs.match(/lat="([0-9/.]*)"/);
                             lng = attrs.match(/lng="([0-9/.]*)"/);
-                            locstyle = attrs.match(/style="([^"]*)"/);
-                            if(locstyle)
-                            {
-                                //console.info("locstyle:",locstyle);
-                                r = locstyle[1].match(/r:([0-9/.]*);/);
-                                fill = locstyle[1].match(/fill:([^;]*);/);
-                                stroke = locstyle[1].match(/stroke:([^;]*);/);
-                                width = locstyle[1].match(/width:([^;]*);/);
-                                if(r)loc.style.r = r[1];
-                                if(fill)loc.style.fill = fill[1];
-                                if(stroke)loc.style.stroke = stroke[1];
-                                if(width)loc.style.width = width[1];
-                                //console.info("loc.style:", loc.style);
-                            }
 
                             if(type)loc.type = type[1];
                             if(id)loc.id = id[1];
@@ -592,26 +604,20 @@ angular.module('scheduleAssistant').factory('mySharedService',
                             if(lat)loc.lat = lat[1];
                             if(lng)loc.lng = lng[1];
                             
-                             locs.push(loc);
-                        }  
+                            jscontents.locs.push(loc);
+                        }
                     }
-                }
-                console.info("locs:", locs);
-                return locs;
-            }
-            
-            sharedService.getLnks = function(htmlstr){
-                res = htmlstr.match(/<\s*lnk.*?>(.*?)<\s*\/\s*lnk\s*.*?>/g);
-                
-                var lnks = new Array();
-                if(res)
+                }   
+     
+                if(lnkres)//if any <lnk> tag existed in html input.
                 {
-                    for(i=0; i<res.length; i++)
+                    for(i=0; i<lnkres.length; i++)
                     {
                         var lnk = {tag:'', content:'', src:'', id:'', points:'', category:'', style:''};
                         lnk.points = [];
                         lnk.style = {type:'', fill:'', stroke:'', width:''};
-                        lnkstr = res[i];
+            
+                        lnkstr = lnkres[i];
                         lnk.tag = lnkstr.match(/<\s*lnk.*?>/g) + '</lnk>';
                         lnk.content = lnkstr.replace(/<\s*lnk.*?>/g,'').replace(/<\s*\/\s*lnk\s*.*?>/g,'');
                         
@@ -619,68 +625,91 @@ angular.module('scheduleAssistant').factory('mySharedService',
                         match = myRegex.exec(lnk.tag);
                         attrs = match[2].replace(/'/g, "\"").replace(/\s*"\s*/g,"\"").replace(/\s*=\s*/g,"=").replace(/\s*,\s*/g,",").replace(/\s*:\s*/g,":").replace(/\s*;\s*/g,";");
                         src = attrs.match(/src="([^"]*)"/);
-                        if(src)
+            
+                        lnkstyle = attrs.match(/style="([^"]*)"/);
+                        if(lnkstyle)
+                        {
+                            lnktype = lnkstyle[1].match(/type:([^;]*);/);
+                            fill = lnkstyle[1].match(/fill:([^;]*);/);
+                            stroke = lnkstyle[1].match(/stroke:([^;]*);/);
+                            width = lnkstyle[1].match(/width:([^;]*);/);
+                            
+                            if(lnktype)lnk.style.type = lnktype[1];
+                            if(fill)lnk.style.fill = fill[1];
+                            if(stroke)lnk.style.stroke = stroke[1];
+                            if(width)lnk.style.width = width[1];
+                        }
+            
+                        if(src)//Processing .csv file with address "src".
+                        {
                             lnk.src = src[1];
+                            csvFiles.push(lnk);
+                        }
                         else
                         {
-                            console.info("lnk's src is null!");
                             id = attrs.match(/id="([^"]*)"/);
                             category = attrs.match(/category="([^"]*)"/);
                             temps = attrs.match(/points="([^"]*)"/);
                             lnk.points = temps[1].split(/[,]+/);
-                            lnkstyle = attrs.match(/style="([^"]*)"/);
-                            if(lnkstyle)
-                            {
-                                console.info("lnkstyle:",lnkstyle);
-                                lnktype = lnkstyle[1].match(/type:([^;]*);/);
-                                fill = lnkstyle[1].match(/fill:([^;]*);/);
-                                stroke = lnkstyle[1].match(/stroke:([^;]*);/);
-                                width = lnkstyle[1].match(/width:([^;]*);/);
-                            
-                                if(lnktype)lnk.style.type = lnktype[1];
-                                if(fill)lnk.style.fill = fill[1];
-                                if(stroke)lnk.style.stroke = stroke[1];
-                                if(width)lnk.style.width = width[1];
-                                //console.info("lnk.style:", lnk.style);
-                            }
-                            
-                        //console.info("temps", temps);            
-                        //console.info('points:', lnk.points);
+                             
                             if(id)lnk.id = id[1];
                             if(category)lnk.category = category[1];
-                            lnks.push(lnk);
-                        }  
-                    }
-                }
-                console.info('lnks:', lnks);
-                return lnks;
-            }
-    
-            sharedService.parseHtml = function(htmlinput){
-                var jscontents = {locs:'', lnks:''};
-                jscontents.locs = this.getLocs(htmlinput);
-                jscontents.lnks = this.getLnks(htmlinput);
-                //console.info("jscontents.lnks before:", jscontents.lnks);
-                //finding each corresponding locs in each lnk and store in lnk.points
-                if(jscontents.lnks && jscontents.locs)
-                {
-                    for(var i=0;i<jscontents.lnks.length;i++)
-                    {
-                        for(var j=0;j<jscontents.lnks[i].points.length;j++)
-                        {
-                            for(var k=0;k<jscontents.locs.length;k++)
-                            {
-                                if(jscontents.lnks[i].points[j] == jscontents.locs[k].name)
-                                    jscontents.lnks[i].points[j] = jscontents.locs[k];
-                            }
+                            jscontents.lnks.push(lnk);
                         }
                     }
                 }
-                //console.info("jscontents.lnks after:", jscontents.lnks);
-                
+     
+                if(csvFiles)//To process all the .locs & .lnks csv files.
+                {
+                    var q = queue();
+                    for(var i=0; i<csvFiles.length; i++)
+                        q.defer(d3.csv, csvFiles[i].src);
+                        
+                    q.await(onDataLoaded);
+                        
+                    function onDataLoaded(error)
+                    {
+                        for(var i=1; i<arguments.length; i++)
+                        {
+                            var index = i-1;
+                            //Since arguments[0] = null;so arguments[1] is corresponding to csvFiles[0]'s result.
+                            for(var j=0; i < csvLocCount + 1 && j < arguments[i].length; j++)//if is .locs file
+                            {
+                                var newloc = {tag:csvFiles[index].tag, content:csvFiles[index].content, src:csvFiles[index].src, id:arguments[i][j].id, lat:arguments[i][j].lat, lng:arguments[i][j].lng, name:arguments[i][j].name, type:arguments[i][j].type, style:{r:csvFiles[index].style.r, fill:csvFiles[index].style.fill, stroke:csvFiles[index].style.stroke, width:csvFiles[index].style.width}};
+                                jscontents.locs.push(newloc);
+                            }
+                            for(var k=0; i >= csvLocCount + 1 && k < arguments[i].length; k++)//if is .lnks file
+                            {
+                                //var temp = arguments[i][k].points.split(/[,]+/);//To split points string into an array by ","
+                                var newlnk = {tag:csvFiles[index].tag, content:csvFiles[index].content, src:csvFiles[index].src, id:arguments[i][k].id, points:arguments[i][k].points.split(/[,]+/), category:arguments[i][k].category, style:{type:csvFiles[index].style.type, fill:csvFiles[index].style.fill, stroke:csvFiles[index].style.stroke, width: csvFiles[index].style.width}};
+                                jscontents.lnks.push(newlnk);
+                            }
+                        }
+             
+                        if(jscontents.lnks && jscontents.locs)
+                        {
+                            for(var i=0;i<jscontents.lnks.length;i++)
+                            {
+                                for(var j=0;j<jscontents.lnks[i].points.length;j++)
+                                {
+                                    for(var k=0;k<jscontents.locs.length;k++)
+                                    {
+                                        if(jscontents.lnks[i].points[j] == jscontents.locs[k].name)
+                                        {
+                                            var newPoint = {name:jscontents.lnks[i].points[j], lat:jscontents.locs[k].lat, lng:jscontents.locs[k].lng};
+                                            jscontents.lnks[i].points[j] = newPoint;
+                                        }
+                                    }
+                                }
+                            }
+                        }  
+                    }
+                }
+    
+                console.info("new jscontents:", jscontents);
                 return jscontents;
             };
             
-            return sharedService;
+    return sharedService;
 });
     
