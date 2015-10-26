@@ -2,23 +2,24 @@
 <html ng-app="scheduleAssistant">
 <meta charset="utf-8">
   <head>
-    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false"></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&sensor=false"></script>
     <script type="text/javascript" src="angular/angular.min.js"></script>
     <script type="text/javascript" src="angular/ui-bootstrap-tpls-0.12.0.min.js"></script>
-    <script type="text/javascript" src="angular/angular-file-upload.js"></script>       
+    <script type="text/javascript" src="angular/autocomplete.js"></script>
+    <script type="text/javascript" src="angular/angular-file-upload.js"></script>
     <script type="text/javascript" src="angular/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="min/bootstrap-3.3.1/js/bootstrap.js"></script>
     <script type="text/javascript" src="angular/ngAutocomplete.js"></script>
     <script type="text/javascript" src="angular/angular-ui-tree.js"></script>
     <script type="text/javascript" src="angular/lodash.js"></script>
     <script type="text/javascript" src="angular/angular-google-maps.js"></script>
-    <script src="http://maps.googleapis.com/maps/api/js"></script>
+    <!--<script src="http://maps.googleapis.com/maps/api/js"></script>-->
     <script src="http://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
     <script type="text/javascript" src="angular/queue.js"></script>
     <script type="text/javascript" src="angular/TextAngular/textAngular-rangy.min.js"></script>
     <script type="text/javascript" src="angular/TextAngular/textAngular-sanitize.js"></script>
     <script type="text/javascript" src="angular/TextAngular/textAngular.min.js"></script>
-    
+      
     <script type="text/javascript" src="angular/es5-shim.min.js"></script>
     <script type="text/javascript" src="angular/es5-sham.min.js"></script>
     <script type="text/javascript" src="angular/jquery-1.8.3.min.js"></script>
@@ -61,9 +62,16 @@
               </ul>
               <form role="search" class="navbar-form navbar-left">
                   <div class="form-group">
-                      <input type="text" placeholder="Search" class="form-control">
+                      <input class="form-control" g-places-autocomplete ng-enter="searchPressed()" ng-model="place" placeholder="Search for Location"/>
+                      <button type="button" ng-click="searchPressed()">Search</button>
                   </div>
               </form>
+              
+              <!--<div class="form-group move-down" style="width:350px" ng-controller="autoCpltCtrl">
+                        <label for="Autocomplete">Destination:</label>
+                        <input type="text" id="Autocomplete" class="form-control" ng-autocomplete="result1" details="details1" options="options1"/>
+              </div>-->  
+              
               <ul class="nav navbar-nar navbar-right">
                   <li><a href="#"><span class="glyphicon glyphicon-user"></span>Login</a></li>
               </ul>
@@ -207,16 +215,17 @@
             <div class="row">
                 <div class="span12">
                     <div id="map_canvas" ng-controller="mapCtrl" style="height: 700px">
-                        <ui-gmap-google-map center="map.center" zoom="map.zoom" options="options"  style="height: 600px">
-                            <ui-gmap-markers models="markers" coords="'self'" icon="'icon'" click="onMarkerClicked">
-                                <ui-gmap-windows show="'showWindow'" ng-cloak>
-                                    <div ng-non-bindable>
-                                        <p>{{title}}</p>
-                                        <p>{{content}}</p>
-                                        <p><a class="btn" ng-click="clickedButtonInWindow()">CLICK ME</a></p>
+                        <ui-gmap-google-map center="map.center" zoom="map.zoom">
+                            <ui-gmap-marker idkey="marker.id" coords="marker.coords" icon="marker.icon" options="marker.options" events="marker.events">
+                                <ui-gmap-window show="marker.show" ng-cloak>
+                                    <div>
+                                        <p>{{ marker.title }}</p>
+                                        <p>{{ marker.content }}</p>
+                                        <p>Insert this location?</p>
+                                        <p><button ng-click="$parent.$parent.yesClicked()">Yes</button><button ng-click="$parent.$parent.noClicked()">No</button></p>
                                     </div>
-                                </ui-gmap-windows>
-                            </ui-gmap-markers>   
+                                </ui-gmap-window>
+                            </ui-gmap-marker>   
                         </ui-gmap-google-map>
                         </div>
                     </div>
