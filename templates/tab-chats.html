@@ -1,0 +1,32 @@
+<ion-view view-title="Maps">
+  <ion-content overflow-scroll= "false">
+   <!-- <ion-list>
+      <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="chat in chats" type="item-text-wrap" href="#/tab/chats/{{chat.id}}">
+        <img ng-src="{{chat.face}}">
+        <h2>{{chat.name}}</h2>
+        <p>{{chat.lastText}}</p>
+        <i class="icon ion-chevron-right icon-accessory"></i>
+
+        <ion-option-button class="button-assertive" ng-click="remove(chat)">
+          Delete
+        </ion-option-button>
+      </ion-item>
+    </ion-list>-->
+    
+    <div id="map_canvas">
+      <ui-gmap-google-map center="map.center" zoom="map.zoom" control="map.control" options="map.options">
+    </div>
+<!--      <ui-gmap-marker idkey="marker.id" coords="marker.coords" icon="marker.icon" options="marker.options" events="marker.events">
+        <ui-gmap-window show="marker.show" ng-cloak>
+          <div>
+            <p>{{ marker.title }}</p>
+            <p>{{ marker.content }}</p>
+            <p>Insert this location?</p>
+            <p><button ng-click="$parent.$parent.yesClicked()">Yes</button><button ng-click="$parent.$parent.noClicked()">No</button></p>
+          </div>
+        </ui-gmap-window>
+      </ui-gmap-marker>-->   
+    </ui-gmap-google-map>
+      
+  </ion-content>
+</ion-view>
