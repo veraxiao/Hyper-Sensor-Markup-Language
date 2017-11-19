@@ -4,10 +4,6 @@
 }
 
 
-.btn {
-    margin-right: 8px;
-}
-
 .angular-ui-tree-handle {
     background: #f8faff;
     border: 1px solid #dae2ea;
@@ -38,3 +34,179 @@
 .angular-google-map-container {
   height: 560px;
 }
+
+.tooltip{
+    position: absolute;
+    line-height:.7;
+    font-weight:bold;
+    padding: 8px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    font-weight: bold;
+    font: 11.5px sans-serif;
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+
+
+.SvgOverlay {
+    position: relative;
+    width: 960px;
+    height: 500px;           
+}
+        
+.SvgOverlay svg {
+    position: absolute;
+    top: -4000px;
+    left: -4000px;
+    width: 8000px;
+    height: 8000px;        
+}
+        
+.SvgOverlay path {
+    stroke: Orange;
+    stroke-width: 2px;
+    fill: Orange;
+    fill-opacity: 0;
+}
+
+.my-drop-zone { 
+    border: dotted 3px lightgray; 
+}
+
+.nv-file-over { 
+    border: dotted 3px red; 
+} /* Default class applied to drop zones on over */
+            
+.another-file-over-class { 
+    border: dotted 3px green; 
+}
+
+.ta-editor {
+  min-height: 300px;
+  height: auto;
+  overflow: auto;
+  font-family: inherit;
+  font-size: 100%;
+}
+
+html, body { 
+    height: 100%; 
+}
+
+
+
+/*
+canvas {
+    background-color: #f3f3f3;
+    -webkit-box-shadow: 3px 3px 3px 0 #e3e3e3;
+    -moz-box-shadow: 3px 3px 3px 0 #e3e3e3;
+    box-shadow: 3px 3px 3px 0 #e3e3e3;
+    border: 1px solid #c3c3c3;
+    height: 100px;
+    margin: 6px 0 0 6px;
+}
+*/
+
+/*for autocomplete control*/
+.pac-container {
+    background-color: #fff;
+    position: absolute !important;
+    z-index: 10000;
+    border-radius: 2px;
+    border-top: 1px solid #d9d9d9;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    overflow: hidden
+}
+
+.pac-container:after {
+    content: "";
+    padding: 1px 1px 1px 0;
+    height: 16px;
+    text-align: right;
+    display: block;
+    background-image: url(//maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white2.png);
+    background-position: right;
+    background-repeat: no-repeat;
+    background-size: 104px 16px
+}
+
+.hdpi.pac-container:after {
+    background-image: url(//maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white2_hdpi.png)
+}
+
+.pac-item {
+    cursor: default;
+    padding: 0 4px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    line-height: 30px;
+    text-align: left;
+    border-top: 1px solid #e6e6e6;
+    font-size: 11px;
+    color: #999
+}
+
+.pac-item:hover {
+    background-color: #fafafa
+}
+
+.pac-item-selected, .pac-item-selected:hover {
+    background-color: #ebf2fe
+}
+
+.pac-matched {
+    font-weight: 700
+}
+
+.pac-item-query {
+    font-size: 13px;
+    padding-right: 3px;
+    color: #000
+}
+
+.pac-icon {
+    width: 15px;
+    height: 20px;
+    margin-right: 7px;
+    margin-top: 6px;
+    display: inline-block;
+    vertical-align: top;
+    background-image: url(//maps.gstatic.com/mapfiles/api-3/images/autocomplete-icons.png);
+    background-size: 34px
+}
+
+.hdpi .pac-icon {
+    background-image: url(//maps.gstatic.com/mapfiles/api-3/images/autocomplete-icons_hdpi.png)
+}
+
+.pac-icon-search {
+    background-position: -1px -1px
+}
+
+.pac-item-selected .pac-icon-search {
+    background-position: -18px -1px
+}
+
+.pac-icon-marker {
+    background-position: -1px -161px
+}
+
+.pac-item-selected .pac-icon-marker {
+    background-position: -18px -161px
+}
+
+.pac-placeholder {
+    color: gray
+}
+
+.custom-prediction-label {
+    font-style: italic;
+}
+/*for autocomplete control*/
